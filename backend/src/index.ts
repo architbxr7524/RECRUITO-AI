@@ -114,7 +114,7 @@ async function bootstrap() {
     })
   })
 
-  // await testDbConnection()
+  await testDbConnection()
   await initQueues()
 
   const PORT = Number(process.env.PORT) || 3001
