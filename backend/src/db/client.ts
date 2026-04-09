@@ -1,8 +1,7 @@
 import postgres from 'postgres'
 
 // Use DATABASE_URL if available, otherwise fall back to individual variables
-const connectionString = process.env.DATABASE_URL || 
-  `postgresql://${process.env.PGUSER || 'postgres'}:${process.env.PGPASSWORD || ''}@${process.env.PGHOST || 'localhost'}:${process.env.PGPORT || '5432'}/${process.env.PGDATABASE || 'railway'}`
+const connectionString = process.env.DATABASE_URL || 'postgresql://localhost/recruito_dev'
 
 console.log(`📍 Connecting using connection string`)
 
