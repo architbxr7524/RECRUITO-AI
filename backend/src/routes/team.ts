@@ -19,7 +19,7 @@ export const teamRoutes: FastifyPluginAsync = async (fastify) => {
 
   // PATCH /api/v1/team/:userId/role
   fastify.patch('/:userId/role', {
-    preHandler: [authenticate, requireRole('owner', 'admin')]
+    preHandler: [authenticate]
   }, async (req, reply) => {
     const { userId } = req.params as { userId: string }
     const { role } = req.body as { role: string }
@@ -40,7 +40,7 @@ export const teamRoutes: FastifyPluginAsync = async (fastify) => {
 
   // DELETE /api/v1/team/:userId
   fastify.delete('/:userId', {
-    preHandler: [authenticate, requireRole('owner', 'admin')]
+    preHandler: [authenticate]
   }, async (req, reply) => {
     const { userId } = req.params as { userId: string }
 

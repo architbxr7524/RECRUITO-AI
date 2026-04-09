@@ -10,7 +10,7 @@ export const sql = postgres(connectionString, {
   connect_timeout: 10, // Fail after 10s if can't connect
   transform: {
     // Auto-convert snake_case DB columns to camelCase in results
-    column: postgres.camel
+    column: postgres.camel as any
   }
 })
 
