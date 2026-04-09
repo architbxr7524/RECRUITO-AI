@@ -114,6 +114,16 @@ async function bootstrap() {
     })
   })
 
+  // Drop old tables first
+  try {
+    const { sql } = await import('./db/client')
+    await sql`DROP TABLE IF EXISTS users CASCADE`
+    await sql`DROP TABLE IF EXISTS companies CASCADE`
+    console.log('✅ Old tables dropped')
+  } catch (err) {
+    console.log('ℹ️ No old tables to drop')
+  }
+
 // Auto-create tables
   try {
     const { sql } = await import('./db/client')
