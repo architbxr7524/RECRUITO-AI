@@ -20,6 +20,7 @@ const loginSchema = z.object({
 export const authRoutes: FastifyPluginAsync = async (fastify) => {
 
   fastify.post('/register', async (req, reply) => {
+  try {
     const body = registerSchema.parse(req.body)
     const existing = await sql`SELECT id FROM users WHERE email = ${body.email}`
     if (existing.length) return reply.code(409).send({ error: 'Email already registered' })
@@ -44,7 +45,11 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
     const user = { id: userId, email: body.email, fullName: body.fullName, role: 'owner', companyId }
     const tokens = issueTokens(fastify, user)
     return reply.code(201).send({ user, ...tokens })
-  })
+  } catch (err: any) {
+    console.error('Registration error:', err)
+    return reply.code(500).send({ error: err.message || 'Registration failed' })
+  }
+})
 
   fastify.post('/login', async (req, reply) => {
     const body = loginSchema.parse(req.body)
