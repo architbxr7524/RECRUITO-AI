@@ -1,0 +1,182 @@
+version: '3.9'
+
+services:
+  # ─────────────────────────────────────────
+  # INFRASTRUCTURE
+  # ─────────────────────────────────────────
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: recruito_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: recruito_dev
+      POSTGRES_USER: recruito
+      POSTGRES_PASSWORD: recruito_secret
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/migrations:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U recruito -d recruito_dev"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: recruito_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    container_name: recruito_minio
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: recruito_minio
+      MINIO_ROOT_PASSWORD: recruito_minio_secret
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─────────────────────────────────────────
+  # BACKEND API
+  # ─────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: recruito_backend
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      NODE_ENV: development
+      PORT: 3001
+      DATABASE_URL: postgresql://recruito:recruito_secret@postgres:5432/recruito_dev
+      REDIS_URL: redis://redis:6379
+      JWT_ACCESS_SECRET: dev_access_secret_change_in_prod
+      JWT_REFRESH_SECRET: dev_refresh_secret_change_in_prod
+      S3_ENDPOINT: http://minio:9000
+      S3_BUCKET: recruito-resumes
+      S3_ACCESS_KEY: recruito_minio
+      S3_SECRET_KEY: recruito_minio_secret
+      S3_REGION: us-east-1
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      FRONTEND_URL: http://localhost:3000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend/src:/app/src
+    command: npm run dev
+
+  # ─────────────────────────────────────────
+  # AI SERVICES (Python Workers)
+  # ─────────────────────────────────────────
+  parser-worker:
+    build:
+      context: ./ai-services
+      dockerfile: Dockerfile
+    container_name: recruito_parser
+    restart: unless-stopped
+    environment:
+      SERVICE: parser
+      DATABASE_URL: postgresql://recruito:recruito_secret@postgres:5432/recruito_dev
+      REDIS_URL: redis://redis:6379
+      S3_ENDPOINT: http://minio:9000
+      S3_BUCKET: recruito-resumes
+      S3_ACCESS_KEY: recruito_minio
+      S3_SECRET_KEY: recruito_minio_secret
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./ai-services:/app
+
+  embedding-worker:
+    build:
+      context: ./ai-services
+      dockerfile: Dockerfile
+    container_name: recruito_embedder
+    restart: unless-stopped
+    environment:
+      SERVICE: embeddings
+      DATABASE_URL: postgresql://recruito:recruito_secret@postgres:5432/recruito_dev
+      REDIS_URL: redis://redis:6379
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./ai-services:/app
+
+  scoring-worker:
+    build:
+      context: ./ai-services
+      dockerfile: Dockerfile
+    container_name: recruito_scorer
+    restart: unless-stopped
+    environment:
+      SERVICE: scoring
+      DATABASE_URL: postgresql://recruito:recruito_secret@postgres:5432/recruito_dev
+      REDIS_URL: redis://redis:6379
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./ai-services:/app
+
+  # ─────────────────────────────────────────
+  # FRONTEND
+  # ─────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: recruito_frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:3001
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    command: npm run dev
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
