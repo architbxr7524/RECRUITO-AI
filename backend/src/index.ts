@@ -147,6 +147,18 @@ async function bootstrap() {
       created_at TIMESTAMPTZ DEFAULT NOW()
     )`
     
+    await sql`CREATE TABLE IF NOT EXISTS hiring_stages (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      company_id UUID NOT NULL REFERENCES companies(id),
+      job_id UUID,
+      name VARCHAR(100) NOT NULL,
+      slug VARCHAR(100) NOT NULL,
+      color VARCHAR(20) DEFAULT '#6366f1',
+      position INTEGER NOT NULL,
+      stage_type VARCHAR(50) DEFAULT 'custom',
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )`
+
     console.log('✅ Tables initialized!')
   } catch (err) {
     console.log('ℹ️ Tables already exist')
