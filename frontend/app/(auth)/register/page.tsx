@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import axios from 'axios'
 
-const api = axios.create({ baseURL: `${process.env.NEXT_PUBLIC_API_URL}/api/v1` })
+const api = axios.create({ baseURL: 'https://recruito-ai-production.up.railway.app/api/v1' })
 
 export default function RegisterPage() {
   const [form, setForm] = useState({ companyName: '', fullName: '', email: '', password: '' })
