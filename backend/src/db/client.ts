@@ -1,7 +1,7 @@
 import postgres from 'postgres'
 
 const connectionString = process.env.DATABASE_URL ||
-  'postgresql://recruito:recruito_secret@localhost:5432/recruito_dev'
+  `postgresql://${process.env.PGUSER || 'recruito'}:${process.env.PGPASSWORD || 'recruito_secret'}@${process.env.PGHOST || 'localhost'}:${process.env.PGPORT || '5432'}/${process.env.PGDATABASE || 'recruito_dev'}`
 
 // Main SQL client — used throughout the app
 export const sql = postgres(connectionString, {
