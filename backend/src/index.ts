@@ -140,6 +140,7 @@ async function bootstrap() {
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       company_id UUID NOT NULL REFERENCES companies(id),
       email VARCHAR(255) UNIQUE NOT NULL,
+      email_verified BOOLEAN DEFAULT FALSE,
       password_hash TEXT,
       role VARCHAR(50) DEFAULT 'recruiter',
       full_name VARCHAR(255) NOT NULL,
