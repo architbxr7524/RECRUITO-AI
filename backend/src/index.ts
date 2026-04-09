@@ -179,6 +179,16 @@ async function bootstrap() {
       ADD COLUMN IF NOT EXISTS resume_credits_used INTEGER DEFAULT 0;
       `
 
+            await sql`
+      ALTER TABLE subscriptions 
+      ADD COLUMN IF NOT EXISTS seats_included INTEGER DEFAULT 1;
+      `
+
+      await sql`
+      ALTER TABLE subscriptions 
+      ADD COLUMN IF NOT EXISTS seats_used INTEGER DEFAULT 1;
+      `
+
     console.log('✅ Tables initialized!')
   } catch (err) {
     console.log('ℹ️ Tables already exist')
