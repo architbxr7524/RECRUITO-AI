@@ -141,6 +141,7 @@ async function bootstrap() {
       company_id UUID NOT NULL REFERENCES companies(id),
       email VARCHAR(255) UNIQUE NOT NULL,
       password_hash TEXT,
+      role VARCHAR(50) DEFAULT 'recruiter',
       full_name VARCHAR(255) NOT NULL,
       created_at TIMESTAMPTZ DEFAULT NOW()
     )`
