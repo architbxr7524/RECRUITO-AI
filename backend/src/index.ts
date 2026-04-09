@@ -121,6 +121,8 @@ async function bootstrap() {
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       name VARCHAR(255) NOT NULL,
       slug VARCHAR(100) UNIQUE NOT NULL,
+      plan VARCHAR(50) DEFAULT 'free',
+      resume_credits INTEGER DEFAULT 25,
       created_at TIMESTAMPTZ DEFAULT NOW()
     )`
     
