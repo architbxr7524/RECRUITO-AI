@@ -1,11 +1,11 @@
 import postgres from 'postgres'
 
 // Railway automatically provides these env variables
-const host = process.env.PGHOST || 'localhost'
-const port = parseInt(process.env.PGPORT || '5432')
-const database = process.env.PGDATABASE || 'railway'
-const user = process.env.PGUSER || 'postgres'
-const password = process.env.PGPASSWORD || ''
+const host = (process.env.PGHOST || 'localhost').trim()
+const port = parseInt((process.env.PGPORT || '5432').trim())
+const database = (process.env.PGDATABASE || 'railway').trim()
+const user = (process.env.PGUSER || 'postgres').trim()
+const password = (process.env.PGPASSWORD || '').trim()
 
 console.log(`📍 Connecting to: ${host}:${port}/${database}`)
 
