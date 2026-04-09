@@ -1,20 +1,12 @@
 import postgres from 'postgres'
 
-// Railway automatically provides these env variables
-const host = (process.env.PGHOST || 'localhost').trim()
-const port = parseInt((process.env.PGPORT || '5432').trim())
-const database = (process.env.PGDATABASE || 'railway').trim()
-const user = (process.env.PGUSER || 'postgres').trim()
-const password = (process.env.PGPASSWORD || '').trim()
+// Use DATABASE_URL if available, otherwise fall back to individual variables
+const connectionString = process.env.DATABASE_URL || 
+  `postgresql://${process.env.PGUSER || 'postgres'}:${process.env.PGPASSWORD || ''}@${process.env.PGHOST || 'localhost'}:${process.env.PGPORT || '5432'}/${process.env.PGDATABASE || 'railway'}`
 
-console.log(`📍 Connecting to: ${host}:${port}/${database}`)
+console.log(`📍 Connecting using connection string`)
 
-export const sql = postgres({
-  host,
-  port,
-  database,
-  user,
-  password,
+export const sql = postgres(connectionString, {
   max: 20,
   idle_timeout: 20,
   connect_timeout: 10,
