@@ -114,6 +114,30 @@ async function bootstrap() {
     })
   })
 
+// Auto-create tables
+  try {
+    const { sql } = await import('./db/client')
+    await sql`CREATE TABLE IF NOT EXISTS companies (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      name VARCHAR(255) NOT NULL,
+      slug VARCHAR(100) UNIQUE NOT NULL,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )`
+    
+    await sql`CREATE TABLE IF NOT EXISTS users (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      company_id UUID NOT NULL REFERENCES companies(id),
+      email VARCHAR(255) UNIQUE NOT NULL,
+      password_hash TEXT,
+      full_name VARCHAR(255) NOT NULL,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )`
+    
+    console.log('✅ Tables initialized!')
+  } catch (err) {
+    console.log('ℹ️ Tables already exist')
+  }
+
   await testDbConnection()
   await initQueues()
 
