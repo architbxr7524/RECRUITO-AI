@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import axios from 'axios'
 
-const api = axios.create({ baseURL: 'http://localhost:3001/api/v1' })
+const api = axios.create({ baseURL: `${process.env.NEXT_PUBLIC_API_URL}/api/v1` })
 
 export default function LoginPage() {
   const router = useRouter()
@@ -166,16 +166,7 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <div style={{
-            marginTop: '20px', paddingTop: '20px',
-            borderTop: '1px solid rgba(48,64,92,0.4)',
-            textAlign: 'center'
-          }}>
-            <div style={{ fontSize: '12px', color: '#7d8590', marginBottom: '6px' }}>Demo credentials</div>
-            <code style={{ fontSize: '12px', color: '#c9d1d9', background: 'rgba(22,27,39,0.8)', padding: '4px 8px', borderRadius: '4px' }}>
-              admin@acme.com / password123
-            </code>
-          </div>
+          
         </div>
 
         <p style={{ textAlign: 'center', marginTop: '20px', fontSize: '13px', color: '#7d8590' }}>
