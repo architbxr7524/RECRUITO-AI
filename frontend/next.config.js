@@ -1,17 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
-  images: {
-    domains: ['localhost', 'avatars.githubusercontent.com'],
-  },
-  async rewrites() {
-    return [
+  rewrites: async () => ({
+    beforeFiles: [
       {
         source: '/api/:path*',
-        destination: `${process.env.NEXT_PUBLIC_API_URL}/api/:path*`,
-      },
+        destination: 'https://recruito-ai-production.up.railway.app/api/:path*'
+      }
     ]
-  },
+  })
 }
 
 module.exports = nextConfig
