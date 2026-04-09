@@ -21,7 +21,7 @@ export async function testDbConnection() {
     console.log(`✅ Database connected: ${result[0].time}`)
   } catch (err) {
     console.error('❌ Database connection failed:', err)
-    process.exit(1)
+    // Don't exit - let the app continue
   }
 }
 
