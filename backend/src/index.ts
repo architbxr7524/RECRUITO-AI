@@ -159,6 +159,16 @@ async function bootstrap() {
       created_at TIMESTAMPTZ DEFAULT NOW()
     )`
 
+      await sql`CREATE TABLE IF NOT EXISTS subscriptions (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      company_id UUID REFERENCES companies(id),
+      plan VARCHAR(50),
+      status VARCHAR(50),
+      current_period_end TIMESTAMPTZ,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )`
+
+
     console.log('✅ Tables initialized!')
   } catch (err) {
     console.log('ℹ️ Tables already exist')
