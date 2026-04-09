@@ -159,6 +159,25 @@ async function bootstrap() {
       created_at TIMESTAMPTZ DEFAULT NOW()
     )`
 
+       await sql`
+CREATE TABLE IF NOT EXISTS jobs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  company_id UUID NOT NULL REFERENCES companies(id),
+
+  title VARCHAR(255),
+  description TEXT,
+  requirements TEXT,
+  benefits TEXT,
+
+  status VARCHAR(50) DEFAULT 'draft',
+
+  created_by UUID REFERENCES users(id),
+
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+)
+`
+     
       await sql`CREATE TABLE IF NOT EXISTS subscriptions (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       company_id UUID REFERENCES companies(id),
