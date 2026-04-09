@@ -1,15 +1,24 @@
 import postgres from 'postgres'
 
-const connectionString = process.env.DATABASE_URL ||
-  `postgresql://${process.env.PGUSER || 'recruito'}:${process.env.PGPASSWORD || 'recruito_secret'}@${process.env.PGHOST || 'localhost'}:${process.env.PGPORT || '5432'}/${process.env.PGDATABASE || 'recruito_dev'}`
+// Railway automatically provides these env variables
+const host = process.env.PGHOST || 'localhost'
+const port = parseInt(process.env.PGPORT || '5432')
+const database = process.env.PGDATABASE || 'railway'
+const user = process.env.PGUSER || 'postgres'
+const password = process.env.PGPASSWORD || ''
 
-// Main SQL client — used throughout the app
-export const sql = postgres(connectionString, {
-  max: 20,             // Connection pool size
-  idle_timeout: 20,    // Close idle connections after 20s
-  connect_timeout: 10, // Fail after 10s if can't connect
+console.log(`📍 Connecting to: ${host}:${port}/${database}`)
+
+export const sql = postgres({
+  host,
+  port,
+  database,
+  user,
+  password,
+  max: 20,
+  idle_timeout: 20,
+  connect_timeout: 10,
   transform: {
-    // Auto-convert snake_case DB columns to camelCase in results
     column: postgres.camel as any
   }
 })
@@ -20,11 +29,10 @@ export async function testDbConnection() {
     console.log(`✅ Database connected: ${result[0].time}`)
   } catch (err) {
     console.error('❌ Database connection failed:', err)
-    throw err
+    process.exit(1)
   }
 }
 
-// Helper: paginate queries
 export function paginate(page: number = 1, limit: number = 20) {
   const safeLimit = Math.min(limit, 100)
   const offset = (Math.max(page, 1) - 1) * safeLimit
