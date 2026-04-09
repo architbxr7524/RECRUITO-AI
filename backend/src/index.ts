@@ -167,7 +167,17 @@ async function bootstrap() {
       current_period_end TIMESTAMPTZ,
       created_at TIMESTAMPTZ DEFAULT NOW()
     )`
+    
+          // Fix missing columns (IMPORTANT for login/register)
+      await sql`
+      ALTER TABLE subscriptions 
+      ADD COLUMN IF NOT EXISTS resume_credits_total INTEGER DEFAULT 25;
+      `
 
+      await sql`
+      ALTER TABLE subscriptions 
+      ADD COLUMN IF NOT EXISTS resume_credits_used INTEGER DEFAULT 0;
+      `
 
     console.log('✅ Tables initialized!')
   } catch (err) {
