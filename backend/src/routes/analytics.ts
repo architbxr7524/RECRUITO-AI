@@ -10,8 +10,14 @@ export const analyticsRoutes: FastifyPluginAsync = async (fastify) => {
       const [jobCount] = await sql`SELECT COUNT(*) as count FROM jobs WHERE company_id = ${companyId} AND deleted_at IS NULL`
       const [candCount] = await sql`SELECT COUNT(*) as count FROM candidates WHERE company_id = ${companyId} AND deleted_at IS NULL`
       const [weekCount] = await sql`SELECT COUNT(*) as count FROM candidates WHERE company_id = ${companyId} AND deleted_at IS NULL AND created_at > NOW() - INTERVAL '7 days'`
-      const [scoreAvg] = await sql`SELECT AVG(score) as avg FROM candidates WHERE company_id = ${companyId} AND score IS NOT NULL`
+      const [scoreAvg] = await sql`
+        SELECT AVG(cs.total_score) as avg 
+        FROM candidate_scores cs
+        JOIN candidates c ON c.id = cs.candidate_id
+        WHERE c.company_id = ${companyId} AND c.deleted_at IS NULL
+      `
       const [company] = await sql`SELECT resume_credits, plan FROM companies WHERE id = ${companyId}`
+      const [hiredCount] = await sql`SELECT COUNT(*) as count FROM candidates WHERE company_id = ${companyId} AND status = 'hired' AND deleted_at IS NULL`
       const activity = await sql`
         SELECT ul.event_type, ul.created_at, u.full_name as user_name
         FROM usage_logs ul
@@ -24,10 +30,10 @@ export const analyticsRoutes: FastifyPluginAsync = async (fastify) => {
         activeJobs: Number(jobCount.count),
         totalCandidates: Number(candCount.count),
         newThisWeek: Number(weekCount.count),
-        avgAiScore: scoreAvg.avg ? Number(scoreAvg.avg).toFixed(1) : null,
+        avgAiScore: scoreAvg?.avg ? Number(scoreAvg.avg).toFixed(1) : null,
         creditsRemaining: Number(company?.resume_credits ?? 0),
         plan: company?.plan ?? 'free',
-        totalHired: 0,
+        totalHired: Number(hiredCount.count),
         recentActivity: activity
       })
     } catch (err) {
@@ -43,7 +49,7 @@ export const analyticsRoutes: FastifyPluginAsync = async (fastify) => {
         SELECT hs.name, hs.position, hs.color, hs.stage_type,
           COUNT(DISTINCT c.id) as count
         FROM hiring_stages hs
-        LEFT JOIN candidates c ON c.stage_id = hs.id
+        LEFT JOIN candidates c ON c.current_stage_id = hs.id
           AND c.company_id = ${companyId}
           AND c.deleted_at IS NULL
         WHERE hs.company_id = ${companyId}
@@ -63,14 +69,15 @@ export const analyticsRoutes: FastifyPluginAsync = async (fastify) => {
     try {
       const dist = await sql`
         SELECT
-          (FLOOR(score / 10) * 10)::INT as bucket_min,
-          (FLOOR(score / 10) * 10 + 10)::INT as bucket_max,
+          (FLOOR(cs.total_score / 10) * 10)::INT as bucket_min,
+          (FLOOR(cs.total_score / 10) * 10 + 10)::INT as bucket_max,
           COUNT(*) as count
-        FROM candidates
-        WHERE company_id = ${companyId}
-          AND score IS NOT NULL
-          AND deleted_at IS NULL
-          ${q.jobId ? sql`AND job_id = ${q.jobId}` : sql``}
+        FROM candidate_scores cs
+        JOIN candidates c ON c.id = cs.candidate_id
+        WHERE c.company_id = ${companyId}
+          AND cs.total_score IS NOT NULL
+          AND c.deleted_at IS NULL
+          ${q.jobId ? sql`AND c.job_id = ${q.jobId}` : sql``}
         GROUP BY bucket_min, bucket_max
         ORDER BY bucket_min
       `
