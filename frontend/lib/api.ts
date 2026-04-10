@@ -1,10 +1,10 @@
 import axios from 'axios'
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL 
+const BASE_URL = "https://recruito-ai-production.up.railway.app"
 console.log("API URL:", BASE_URL)
 
 export const api = axios.create({
-  baseURL: `${BASE_URL}/api/v1`,
+  baseURL: "https://recruito-ai-production.up.railway.app/api/v1",
   timeout: 30000,
   headers: { 'Content-Type': 'application/json' }
 })
