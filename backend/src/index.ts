@@ -251,6 +251,18 @@ async function bootstrap() {
         created_at TIMESTAMPTZ DEFAULT NOW()
       )
     `
+    await sql`
+  CREATE TABLE IF NOT EXISTS candidate_stage_history (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    candidate_id UUID REFERENCES candidates(id),
+    job_id UUID REFERENCES jobs(id),
+    company_id UUID REFERENCES companies(id),
+    from_stage_id UUID,
+    to_stage_id UUID,
+    moved_by UUID REFERENCES users(id),
+    created_at TIMESTAMPTZ DEFAULT NOW()
+  )
+`
 
     console.log('✅ Tables initialized!')
   } catch (err) {
