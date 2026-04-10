@@ -199,7 +199,15 @@ await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS experience_max INTEGER`
 await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS salary_min INTEGER`
 await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS salary_max INTEGER`
 await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS salary_currency VARCHAR(10)`
-     
+await sql`
+ALTER TABLE jobs 
+ADD COLUMN IF NOT EXISTS embedding_status VARCHAR(50) DEFAULT 'pending'
+`
+await sql`
+ALTER TABLE jobs 
+ADD COLUMN IF NOT EXISTS embedding_vector TEXT
+`
+  
       await sql`CREATE TABLE IF NOT EXISTS subscriptions (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       company_id UUID REFERENCES companies(id),
