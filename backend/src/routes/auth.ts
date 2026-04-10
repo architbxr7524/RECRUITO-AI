@@ -52,6 +52,7 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
 })
 
   fastify.post('/login', async (req, reply) => {
+  try {
     const body = loginSchema.parse(req.body)
 
     const result = await sql`
@@ -59,41 +60,34 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
              c.name as company_name, c.slug as company_slug, c.plan, c.resume_credits
       FROM users u
       JOIN companies c ON c.id = u.company_id
-      WHERE u.email = ${body.email} AND u.deleted_at IS NULL
+      WHERE u.email = ${body.email}
     `
 
-    if (!result.length) return reply.code(401).send({ error: 'Invalid credentials' })
-
-    const row = result[0]
-    const hash = row.password_hash
-
-    if (!hash) {
-      console.log("NO HASH FOUND:", row)
-      return reply.code(401).send({ error: 'Account error' })
+    if (!result.length) {
+      return reply.code(401).send({ error: 'Invalid credentials' })
     }
 
-    if (!hash) return reply.code(401).send({ error: 'Account error - run fix-password.js' })
+    const user = result[0]
 
-    const valid = await bcrypt.compare(body.password, hash)
-    if (!valid) return reply.code(401).send({ error: 'Invalid credentials' })
+    const valid = await bcrypt.compare(body.password, user.password_hash)
 
-    sql`UPDATE users SET last_login_at = NOW() WHERE id = ${row.id}`.catch(() => {})
-
-    const user = {
-      id: row.id,
-      email: row.email,
-      fullName: row.full_name || row.fullName,
-      role: row.role,
-      companyId: row.company_id || row.companyId,
-      companyName: row.company_name || row.companyName,
-      companySlug: row.company_slug || row.companySlug,
-      plan: row.plan
+    if (!valid) {
+      return reply.code(401).send({ error: 'Invalid credentials' })
     }
 
-    const tokens = issueTokens(fastify, user)
+    const tokens = issueTokens(fastify, {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      companyId: user.company_id
+    })
+
     return reply.send({ user, ...tokens })
-  })
 
+  } catch (err: any) {
+    return reply.code(500).send({ error: err.message })
+  }
+})
   fastify.post('/refresh', async (req, reply) => {
     const { refreshToken } = req.body as { refreshToken: string }
     if (!refreshToken) return reply.code(401).send({ error: 'Refresh token required' })
