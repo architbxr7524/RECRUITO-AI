@@ -90,15 +90,16 @@ fastify.post('/', { preHandler: [authenticate] }, async (req, reply) => {
   
 
   // GET /api/v1/jobs/:jobId
-  fastify.get('/:jobId', { preHandler: [authenticate] }, async (req, reply) => {
-    const { jobId } = req.params as { jobId: string }
-    const companyId = req.user.companyId
+fastify.get('/:jobId', { preHandler: [authenticate] }, async (req, reply) => {
+  const { jobId } = req.params as { jobId: string }
+  const companyId = req.user.companyId
 
+  try {
     const jobs = await sql`
       SELECT j.*,
         u.full_name as created_by_name,
         COUNT(DISTINCT c.id) FILTER (WHERE c.deleted_at IS NULL) as candidate_count,
-        AVG(cs.total_score) as avg_score
+        AVG(cs.score) as avg_score
       FROM jobs j
       LEFT JOIN users u ON u.id = j.created_by
       LEFT JOIN candidates c ON c.job_id = j.id
@@ -114,7 +115,11 @@ fastify.post('/', { preHandler: [authenticate] }, async (req, reply) => {
       candidateCount: Number(job.candidateCount || job.candidate_count || 0),
       avgScore: job.avgScore || job.avg_score || null
     })
-  })
+  } catch (err: any) {
+    fastify.log.error(err)
+    return reply.code(500).send({ error: err?.message || 'Failed to fetch job' })
+  }
+})
 
   // PATCH /api/v1/jobs/:jobId
   fastify.patch('/:jobId', { preHandler: [authenticate] }, async (req, reply) => {
@@ -146,18 +151,23 @@ fastify.post('/', { preHandler: [authenticate] }, async (req, reply) => {
   })
 
   // POST /api/v1/jobs/:jobId/publish
-  fastify.post('/:jobId/publish', { preHandler: [authenticate] }, async (req, reply) => {
-    const { jobId } = req.params as { jobId: string }
-    const companyId = req.user.companyId
+fastify.post('/:jobId/publish', { preHandler: [authenticate] }, async (req, reply) => {
+  const { jobId } = req.params as { jobId: string }
+  const companyId = req.user.companyId
 
+  try {
     const [job] = await sql`
-      UPDATE jobs SET status = 'active', published_at = NOW(), updated_at = NOW()
+      UPDATE jobs SET status = 'active', updated_at = NOW()
       WHERE id = ${jobId} AND company_id = ${companyId} AND deleted_at IS NULL
       RETURNING *
     `
     if (!job) return reply.code(404).send({ error: 'Job not found' })
     return reply.send(job)
-  })
+  } catch (err: any) {
+    fastify.log.error(err)
+    return reply.code(500).send({ error: err?.message || 'Failed to publish job' })
+  }
+})
 
   // DELETE /api/v1/jobs/:jobId
   fastify.delete('/:jobId', { preHandler: [authenticate] }, async (req, reply) => {
