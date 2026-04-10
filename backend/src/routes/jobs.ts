@@ -99,10 +99,10 @@ export const jobRoutes: FastifyPluginAsync = async (fastify) => {
     // existing code
     const job = await sql`INSERT ...`
     return job
-  } catch (err) {
-    console.error("JOB CREATE ERROR:", err)   // 👈 ye add kar
-    return reply.status(500).send({ error: err.message })
-  }
+  } catch (err: any) {
+  console.error("JOB CREATE ERROR:", err)
+  return reply.status(500).send({ error: err?.message || "Something went wrong" })
+}
 })
 
   // GET /api/v1/jobs/:jobId
