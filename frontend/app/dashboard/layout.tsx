@@ -33,15 +33,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <div style={{ display: 'flex', height: '100vh', background: 'var(--bg)', overflow: 'hidden' }}>
+    <div style={{ display: 'flex', height: '100vh', background: 'var(--bg)', }}>
       {/* Sidebar */}
-      <aside style={{
-        width: '220px', flexShrink: 0,
+     <aside style={{
+      width: '220px',
+      flexShrink: 0,
+      display: window.innerWidth < 768 ? 'none' : 'flex',
         background: 'var(--surface)',
-        borderRight: '1px solid var(--border)',
-        display: 'flex', flexDirection: 'column',
-        padding: '0'
-      }}>
+        }}>
         {/* Logo */}
         <div style={{ padding: '20px 16px 16px', borderBottom: '1px solid var(--border)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
