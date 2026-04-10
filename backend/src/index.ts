@@ -207,6 +207,15 @@ await sql`
 ALTER TABLE jobs 
 ADD COLUMN IF NOT EXISTS embedding_vector TEXT
 `
+await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS embedding_status VARCHAR(50) DEFAULT 'pending'`
+await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS embedding_vector TEXT`
+await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS skills TEXT`
+await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS requirements TEXT`
+await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS benefits TEXT`
+await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS department VARCHAR(255)`
+await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS location VARCHAR(255)`
+await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS remote_type VARCHAR(50)`
+await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS employment_type VARCHAR(50)`
   
       await sql`CREATE TABLE IF NOT EXISTS subscriptions (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
