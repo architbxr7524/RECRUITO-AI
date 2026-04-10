@@ -16,7 +16,7 @@ export default function DashboardPage() {
     const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
     if (greetRef.current) greetRef.current.textContent = greeting + ', ' + name + ' 👋'
 
-    fetch('http://localhost:3001/api/v1/analytics/overview', {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/analytics/overview`, {
       headers: { Authorization: 'Bearer ' + token }
     }).then(r => r.json()).then(d => {
       if (!statsRef.current) return
@@ -52,7 +52,7 @@ export default function DashboardPage() {
       `
     }).catch(() => {})
 
-    fetch('http://localhost:3001/api/v1/jobs?limit=5', {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/jobs?limit=5`, {
       headers: { Authorization: 'Bearer ' + token }
     }).then(r => r.json()).then(d => {
       if (!jobsRef.current) return
