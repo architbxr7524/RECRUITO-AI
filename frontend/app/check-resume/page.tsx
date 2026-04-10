@@ -28,7 +28,7 @@ export default function CheckResumePage() {
       const formData = new FormData()
       formData.append('file', file)
 
-      const res = await fetch('http://localhost:3001/api/v1/resumes/analyze', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/resumes/analyze`, {
         method: 'POST',
         body: formData
       })
@@ -110,8 +110,10 @@ export default function CheckResumePage() {
         {/* Upload */}
         {!result && (
           <div>
-            <div {...getRootProps()} style={{
-              border: `2px dashed ${isDragActive ? '#2f81f7' : 'rgba(48,64,92,0.6)'}`,
+            <div {...getRootProps()} 
+            
+            
+            style={{border: `2px dashed ${isDragActive ? '#2f81f7' : 'rgba(48,64,92,0.6)'}`,
               borderRadius: '12px', padding: '48px 24px', textAlign: 'center',
               cursor: 'pointer', transition: 'all 0.2s',
               background: isDragActive ? 'rgba(47,129,247,0.05)' : 'rgba(13,17,23,0.6)',

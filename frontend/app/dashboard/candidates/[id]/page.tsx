@@ -56,7 +56,7 @@ export default function CandidateDetailPage() {
 
   const loadCandidate = () => {
     const token = getToken()
-    fetch(`http://localhost:3001/api/v1/candidates/${id}`, {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/jobs`, {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(r => {
@@ -73,7 +73,7 @@ export default function CandidateDetailPage() {
   const addNote = async () => {
     if (!noteContent.trim()) return
     setSaving(true)
-    await fetch(`http://localhost:3001/api/v1/candidates/${id}/notes`, {
+    await fetch(`http://${process.env.NEXT_PUBLIC_API_URL}/api/v1/candidates/${id}/notes`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${getToken()}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ content: noteContent, noteType: 'note', rating: noteRating || undefined })

@@ -14,7 +14,7 @@ export default function PipelinePage() {
   }
 
   const load = () => {
-    fetch(`http://localhost:3001/api/v1/pipeline/${jobId}`, {
+    fetch(`http://${process.env.NEXT_PUBLIC_API_URL}/api/v1/pipeline/${jobId}`, {
       headers: { Authorization: 'Bearer ' + getToken() }
     }).then(r => r.json()).then(d => { setData(d); setLoading(false) }).catch(() => setLoading(false))
   }
@@ -22,7 +22,7 @@ export default function PipelinePage() {
   useEffect(() => { load() }, [jobId])
 
   const move = async (candidateId: string, toStageId: string) => {
-    await fetch('http://localhost:3001/api/v1/pipeline/move', {
+    await fetch('http://${process.env.NEXT_PUBLIC_API_URL}/api/v1/pipeline/move', {
       method: 'POST',
       headers: { Authorization: 'Bearer ' + getToken(), 'Content-Type': 'application/json' },
       body: JSON.stringify({ candidateId, toStageId })

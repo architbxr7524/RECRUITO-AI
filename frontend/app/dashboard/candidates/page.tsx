@@ -18,8 +18,8 @@ export default function CandidatesPage() {
   useEffect(() => {
     const token = getToken()
     const url = search
-      ? `http://localhost:3001/api/v1/candidates?search=${encodeURIComponent(search)}`
-      : `http://localhost:3001/api/v1/candidates?limit=50`
+      ? `http://${process.env.NEXT_PUBLIC_API_URL}/api/v1/candidates?search=${encodeURIComponent(search)}`
+      : `http://${process.env.NEXT_PUBLIC_API_URL}/api/v1/candidates?limit=50`
     fetch(url, { headers: { Authorization: 'Bearer ' + token } })
       .then(r => r.json())
       .then(d => { setCandidates(d.candidates || []); setTotal(d.total || 0) })
