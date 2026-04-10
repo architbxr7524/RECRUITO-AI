@@ -85,6 +85,7 @@ export const jobRoutes: FastifyPluginAsync = async (fastify) => {
       )
       RETURNING *
     `
+    return job[0]
 
     await sql`
       INSERT INTO usage_logs (company_id, user_id, event_type, resource_type, resource_id)
