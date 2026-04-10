@@ -54,9 +54,9 @@ export default function CandidateDetailPage() {
     } catch { return '' }
   }
 
-  const loadCandidate = () => {
+ const loadCandidate = () => {
     const token = getToken()
-    fetch(`https://recruito-ai-production.up.railway.app/api/v1/jobs`, {
+    fetch(`https://recruito-ai-production.up.railway.app/api/v1/candidates/${id}`, {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(r => {
@@ -67,7 +67,7 @@ export default function CandidateDetailPage() {
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false))
   }
-
+  
   useEffect(() => { loadCandidate() }, [id])
 
   const addNote = async () => {
