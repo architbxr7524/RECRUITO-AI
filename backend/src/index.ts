@@ -216,7 +216,7 @@ await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS department VARCHAR(255)`
 await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS location VARCHAR(255)`
 await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS remote_type VARCHAR(50)`
 await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS employment_type VARCHAR(50)`
-  
+
       await sql`CREATE TABLE IF NOT EXISTS subscriptions (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       company_id UUID REFERENCES companies(id),
@@ -226,6 +226,16 @@ await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS employment_type VARCHAR(50)`
       created_at TIMESTAMPTZ DEFAULT NOW()
     )`
 
+      await sql`
+CREATE TABLE IF NOT EXISTS usage_logs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  company_id UUID REFERENCES companies(id),
+  action VARCHAR(100),
+  credits_used INTEGER DEFAULT 0,
+  metadata JSONB,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+)
+`
      
     
           // Fix missing columns (IMPORTANT for login/register)
