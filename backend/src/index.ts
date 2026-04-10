@@ -236,6 +236,14 @@ CREATE TABLE IF NOT EXISTS usage_logs (
   created_at TIMESTAMPTZ DEFAULT NOW()
 )
 `
+await sql`
+ALTER TABLE usage_logs 
+ADD COLUMN IF NOT EXISTS user_id UUID
+`
+await sql`
+ALTER TABLE usage_logs 
+ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES users(id)
+`
      
     
           // Fix missing columns (IMPORTANT for login/register)
