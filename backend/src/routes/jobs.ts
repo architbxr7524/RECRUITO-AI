@@ -49,8 +49,9 @@ export const jobRoutes: FastifyPluginAsync = async (fastify) => {
     return reply.send({ jobs, total: Number(count), page: q.page || 1, limit })
   })
 
-  // POST /api/v1/jobs
-  fastify.post('/', { preHandler: [authenticate] }, async (req, reply) => {
+     // POST /api/v1/jobs
+fastify.post('/', { preHandler: [authenticate] }, async (req, reply) => {
+  try {
     const body = createJobSchema.parse(req.body)
     const jobId = uuidv4()
     const companyId = req.user.companyId
@@ -64,47 +65,29 @@ export const jobRoutes: FastifyPluginAsync = async (fastify) => {
         description, requirements, benefits,
         status, embedding_status
       ) VALUES (
-        ${jobId},
-        ${companyId},
-        ${createdBy},
-        ${body.title},
-        ${body.department || null},
-        ${body.location || null},
-        ${body.remoteType},
-        ${body.employmentType},
-        ${body.experienceMin},
-        ${body.experienceMax},
-        ${body.salaryMin || null},
-        ${body.salaryMax || null},
-        ${body.salaryCurrency},
-        ${body.description},
-        ${body.requirements || null},
-        ${body.benefits || null},
-        'draft',
-        'pending'
+        ${jobId}, ${companyId}, ${createdBy},
+        ${body.title}, ${body.department || null}, ${body.location || null},
+        ${body.remoteType}, ${body.employmentType},
+        ${body.experienceMin}, ${body.experienceMax},
+        ${body.salaryMin || null}, ${body.salaryMax || null}, ${body.salaryCurrency},
+        ${body.description}, ${body.requirements || null}, ${body.benefits || null},
+        'draft', 'pending'
       )
       RETURNING *
     `
-    return job[0]
 
     await sql`
       INSERT INTO usage_logs (company_id, user_id, event_type, resource_type, resource_id)
       VALUES (${companyId}, ${createdBy}, 'job.created', 'job', ${jobId})
     `
 
-    return reply.code(201).send(job)
-  })
-
-  fastify.post('/jobs', async (req, reply) => {
-  try {
-    // existing code
-    const job = await sql`INSERT ...`
-    return job
+    return reply.code(201).send(job)  // ✅ job is the row, not job[0]
   } catch (err: any) {
-  console.error("JOB CREATE ERROR:", err)
-  return reply.status(500).send({ error: err?.message || "Something went wrong" })
-}
+    console.error("JOB CREATE ERROR:", err)
+    return reply.code(500).send({ error: err?.message || "Something went wrong" })
+  }
 })
+  
 
   // GET /api/v1/jobs/:jobId
   fastify.get('/:jobId', { preHandler: [authenticate] }, async (req, reply) => {
