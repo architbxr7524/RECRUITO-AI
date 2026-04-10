@@ -23,11 +23,11 @@ export const pipelineRoutes: FastifyPluginAsync = async (fastify) => {
     `
     if (!jobs.length) return reply.code(404).send({ error: 'Job not found' })
 
-    let stages = await sql`
-      SELECT * FROM hiring_stages
-      WHERE company_id = ${companyId} AND job_id = ${jobId}
-      ORDER BY position ASC
-    `
+    let stages: any[] = await sql`
+    SELECT * FROM hiring_stages
+    WHERE company_id = ${companyId} AND job_id = ${jobId}
+    ORDER BY position ASC
+  `
 
     if (!stages.length) {
       const defaults = [
@@ -39,7 +39,7 @@ export const pipelineRoutes: FastifyPluginAsync = async (fastify) => {
         { name: 'Rejected',  position: 6, color: '#ef4444', stage_type: 'rejected',  slug: 'rejected' },
       ]
 
-      stages = [] as any[]  // ✅ no re-declaration, just reassign
+       stages = [] as any[]  // ✅ no re-declaration, just reassign
       for (const s of defaults) {
         const [inserted] = await sql`
           INSERT INTO hiring_stages (company_id, job_id, name, slug, position, color, stage_type)
