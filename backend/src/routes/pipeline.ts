@@ -38,7 +38,8 @@ export const pipelineRoutes: FastifyPluginAsync = async (fastify) => {
         { name: 'Hired',     position: 5, color: '#10b981', stage_type: 'hired',     slug: 'hired' },
         { name: 'Rejected',  position: 6, color: '#ef4444', stage_type: 'rejected',  slug: 'rejected' },
       ]
-      stages = []  // ✅ no re-declaration, just reassign
+
+      stages = [] as any[]  // ✅ no re-declaration, just reassign
       for (const s of defaults) {
         const [inserted] = await sql`
           INSERT INTO hiring_stages (company_id, job_id, name, slug, position, color, stage_type)
