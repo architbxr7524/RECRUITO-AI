@@ -15,8 +15,8 @@ export default function JobsPage() {
   useEffect(() => {
     const token = getToken()
     const url = filter === 'all'
-      ? `${process.env.NEXT_PUBLIC_API_URL}/api/v1/jobs?limit=50`
-      : `${process.env.NEXT_PUBLIC_API_URL}/api/v1/jobs?limit=50&status=${filter}`
+      ? `https://recruito-ai-production.up.railway.app/api/v1/jobs?limit=50`
+      : `https://recruito-ai-production.up.railway.app/api/v1/jobs?limit=50&status=${filter}`
     fetch(url, { headers: { Authorization: 'Bearer ' + token } })
       .then(r => r.json())
       .then(d => { setJobs(d.jobs || []); setTotal(d.total || 0); setLoading(false) })
@@ -92,7 +92,7 @@ export default function JobsPage() {
                   <div style={{ display: 'flex', gap: '8px' }}>
                     {job.status === 'draft' && (
                       <button onClick={async () => {
-                        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/jobs/${job.id}/publish`, {
+                        fetch(`https://recruito-ai-production.up.railway.app/api/v1/jobs/${job.id}/publish`, {
                           method: 'POST', headers: { Authorization: 'Bearer ' + getToken() }
                         })
                         setFilter(f => f)

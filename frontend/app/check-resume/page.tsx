@@ -28,7 +28,7 @@ export default function CheckResumePage() {
       const formData = new FormData()
       formData.append('file', file)
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/resumes/analyze`, {
+      const res = await fetch(`https://recruito-ai-production.up.railway.app/api/v1/resumes/analyze`, {
         method: 'POST',
         body: formData
       })
