@@ -6,7 +6,7 @@ import { sql } from '../db/client'
 import { authenticate } from '../middleware/auth'
 
 const registerSchema = z.object({
-  companyName: z.string().min(2).max(255),
+  companyName: z.string().min(1).default("MyCompany")
   email: z.string().email(),
   password: z.string().min(8),
   fullName: z.string().min(2).max(255)
