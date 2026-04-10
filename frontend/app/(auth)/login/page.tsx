@@ -1,11 +1,12 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import axios from 'axios'
-
-const api = axios.create({ baseURL: `${process.env.NEXT_PUBLIC_API_URL}/api/v1` })
+import { api } from '@/lib/api'  // ✅ use your existing api.ts — hardcoded URL, interceptors included
+// ❌ remove: import axios from 'axios'
+// ❌ remove: const api = axios.create({ baseURL: `${process.env.NEXT_PUBLIC_API_URL}/api/v1` })
 
 export default function LoginPage() {
+  // ... rest of your component unchanged
   const router = useRouter()
   const [form, setForm] = useState({ email: '', password: '' })
   const [loading, setLoading] = useState(false)
