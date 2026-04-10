@@ -272,6 +272,16 @@ CREATE TABLE IF NOT EXISTS candidates (
   created_at TIMESTAMPTZ DEFAULT NOW()
 )
 `
+await sql`
+CREATE TABLE IF NOT EXISTS candidate_scores (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  candidate_id UUID REFERENCES candidates(id),
+  job_id UUID REFERENCES jobs(id),
+  score INTEGER,
+  feedback TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+)
+`
      
     
           // Fix missing columns (IMPORTANT for login/register)
