@@ -22,11 +22,30 @@ export const pipelineRoutes: FastifyPluginAsync = async (fastify) => {
     `
     if (!jobs.length) return reply.code(404).send({ error: 'Job not found' })
 
-    const stages = await sql`
-      SELECT * FROM hiring_stages
-      WHERE company_id = ${companyId}
-      ORDER BY position ASC
+    let stages = await sql`
+  SELECT * FROM hiring_stages
+  WHERE company_id = ${companyId}
+  ORDER BY position ASC
+`
+
+// Auto-create default stages for this company if none exist
+if (!stages.length) {
+  const defaults = [
+    { name: 'Applied',    position: 1, color: '#6366f1', stage_type: 'applied' },
+    { name: 'Screening',  position: 2, color: '#f59e0b', stage_type: 'active' },
+    { name: 'Interview',  position: 3, color: '#3b82f6', stage_type: 'active' },
+    { name: 'Offer',      position: 4, color: '#8b5cf6', stage_type: 'active' },
+    { name: 'Hired',      position: 5, color: '#10b981', stage_type: 'hired' },
+  ]
+  for (const s of defaults) {
+    const [inserted] = await sql`
+      INSERT INTO hiring_stages (company_id, name, position, color, stage_type)
+      VALUES (${companyId}, ${s.name}, ${s.position}, ${s.color}, ${s.stage_type})
+      RETURNING *
     `
+    stages.push(inserted)
+  }
+}
 
     const candidates = await sql`
       SELECT

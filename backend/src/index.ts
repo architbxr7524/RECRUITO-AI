@@ -127,191 +127,134 @@ async function bootstrap() {
 // Auto-create tables
   try {
     const { sql } = await import('./db/client')
-    await sql`CREATE TABLE IF NOT EXISTS companies (
-      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-      name VARCHAR(255) NOT NULL,
-      slug VARCHAR(100) UNIQUE NOT NULL,
-      plan VARCHAR(50) DEFAULT 'free',
-      resume_credits INTEGER DEFAULT 25,
-      created_at TIMESTAMPTZ DEFAULT NOW()
-    )`
-    
-    await sql`CREATE TABLE IF NOT EXISTS users (
-      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-      company_id UUID NOT NULL REFERENCES companies(id),
-      email VARCHAR(255) UNIQUE NOT NULL,
-      email_verified BOOLEAN DEFAULT FALSE,
-      password_hash TEXT,
-      role VARCHAR(50) DEFAULT 'recruiter',
-      full_name VARCHAR(255) NOT NULL,
-      created_at TIMESTAMPTZ DEFAULT NOW()
-    )`
-    
-    await sql`CREATE TABLE IF NOT EXISTS hiring_stages (
-      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-      company_id UUID NOT NULL REFERENCES companies(id),
-      job_id UUID,
-      name VARCHAR(100) NOT NULL,
-      slug VARCHAR(100) NOT NULL,
-      color VARCHAR(20) DEFAULT '#6366f1',
-      position INTEGER NOT NULL,
-      stage_type VARCHAR(50) DEFAULT 'custom',
-      created_at TIMESTAMPTZ DEFAULT NOW()
-    )`
 
-       await sql`
-CREATE TABLE IF NOT EXISTS jobs (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  company_id UUID NOT NULL REFERENCES companies(id),
+    await sql`
+      CREATE TABLE IF NOT EXISTS companies (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        name VARCHAR(255) NOT NULL,
+        slug VARCHAR(100) UNIQUE NOT NULL,
+        plan VARCHAR(50) DEFAULT 'free',
+        resume_credits INTEGER DEFAULT 25,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      )
+    `
 
-  title VARCHAR(255) NOT NULL,
-  department VARCHAR(255),
-  location VARCHAR(255),
-  remote_type VARCHAR(50),
-  employment_type VARCHAR(50),
+    await sql`
+      CREATE TABLE IF NOT EXISTS users (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        company_id UUID NOT NULL REFERENCES companies(id),
+        email VARCHAR(255) UNIQUE NOT NULL,
+        email_verified BOOLEAN DEFAULT FALSE,
+        password_hash TEXT,
+        role VARCHAR(50) DEFAULT 'recruiter',
+        full_name VARCHAR(255) NOT NULL,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      )
+    `
 
-  experience_min INTEGER,
-  experience_max INTEGER,
+    await sql`
+      CREATE TABLE IF NOT EXISTS hiring_stages (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        company_id UUID NOT NULL REFERENCES companies(id),
+        job_id UUID,
+        name VARCHAR(100) NOT NULL,
+        slug VARCHAR(100) NOT NULL,
+        color VARCHAR(20) DEFAULT '#6366f1',
+        position INTEGER NOT NULL,
+        stage_type VARCHAR(50) DEFAULT 'custom',
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      )
+    `
 
-  salary_min INTEGER,
-  salary_max INTEGER,
-  salary_currency VARCHAR(10),
+    await sql`
+      CREATE TABLE IF NOT EXISTS jobs (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        company_id UUID NOT NULL REFERENCES companies(id),
+        title VARCHAR(255) NOT NULL,
+        department VARCHAR(255),
+        location VARCHAR(255),
+        remote_type VARCHAR(50),
+        employment_type VARCHAR(50),
+        experience_min INTEGER,
+        experience_max INTEGER,
+        salary_min INTEGER,
+        salary_max INTEGER,
+        salary_currency VARCHAR(10),
+        description TEXT,
+        requirements TEXT,
+        benefits TEXT,
+        skills TEXT,
+        status VARCHAR(50) DEFAULT 'draft',
+        embedding_status VARCHAR(50) DEFAULT 'pending',
+        embedding_vector TEXT,
+        created_by UUID REFERENCES users(id),
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        updated_at TIMESTAMPTZ DEFAULT NOW()
+      )
+    `
 
-  description TEXT,
-  requirements TEXT,
-  benefits TEXT,
+    await sql`
+      CREATE TABLE IF NOT EXISTS candidates (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        company_id UUID REFERENCES companies(id),
+        job_id UUID REFERENCES jobs(id),
+        name VARCHAR(255),
+        email VARCHAR(255),
+        phone VARCHAR(50),
+        resume_url TEXT,
+        status VARCHAR(50) DEFAULT 'applied',
+        score INTEGER,
+        stage_id UUID,
+        notes TEXT,
+        deleted_at TIMESTAMPTZ,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      )
+    `
 
-  status VARCHAR(50) DEFAULT 'draft',
+    await sql`
+      CREATE TABLE IF NOT EXISTS candidate_scores (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        candidate_id UUID REFERENCES candidates(id),
+        job_id UUID REFERENCES jobs(id),
+        score INTEGER,
+        feedback TEXT,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      )
+    `
 
-  created_by UUID REFERENCES users(id),
+    await sql`
+      CREATE TABLE IF NOT EXISTS subscriptions (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        company_id UUID REFERENCES companies(id),
+        plan VARCHAR(50),
+        status VARCHAR(50),
+        current_period_end TIMESTAMPTZ,
+        resume_credits_total INTEGER DEFAULT 25,
+        resume_credits_used INTEGER DEFAULT 0,
+        seats_included INTEGER DEFAULT 1,
+        seats_used INTEGER DEFAULT 1,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      )
+    `
 
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-)
-`
-
-await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS department VARCHAR(255)`
-await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS location VARCHAR(255)`
-await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS remote_type VARCHAR(50)`
-await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS employment_type VARCHAR(50)`
-await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS experience_min INTEGER`
-await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS experience_max INTEGER`
-await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS salary_min INTEGER`
-await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS salary_max INTEGER`
-await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS salary_currency VARCHAR(10)`
-await sql`
-ALTER TABLE jobs 
-ADD COLUMN IF NOT EXISTS embedding_status VARCHAR(50) DEFAULT 'pending'
-`
-await sql`
-ALTER TABLE jobs 
-ADD COLUMN IF NOT EXISTS embedding_vector TEXT
-`
-await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS embedding_status VARCHAR(50) DEFAULT 'pending'`
-await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS embedding_vector TEXT`
-await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS skills TEXT`
-await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS requirements TEXT`
-await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS benefits TEXT`
-await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS department VARCHAR(255)`
-await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS location VARCHAR(255)`
-await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS remote_type VARCHAR(50)`
-await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS employment_type VARCHAR(50)`
-
-      await sql`CREATE TABLE IF NOT EXISTS subscriptions (
-      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-      company_id UUID REFERENCES companies(id),
-      plan VARCHAR(50),
-      status VARCHAR(50),
-      current_period_end TIMESTAMPTZ,
-      created_at TIMESTAMPTZ DEFAULT NOW()
-    )`
-
-      await sql`
-CREATE TABLE IF NOT EXISTS usage_logs (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  company_id UUID REFERENCES companies(id),
-  action VARCHAR(100),
-  credits_used INTEGER DEFAULT 0,
-  metadata JSONB,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-)
-`
-await sql`
-ALTER TABLE usage_logs 
-ADD COLUMN IF NOT EXISTS user_id UUID
-`
-await sql`
-ALTER TABLE usage_logs 
-ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES users(id)
-`
-await sql`
-ALTER TABLE usage_logs 
-ADD COLUMN IF NOT EXISTS event_type VARCHAR(100)
-`
-await sql`
-ALTER TABLE usage_logs 
-ADD COLUMN IF NOT EXISTS resource_type VARCHAR(100)
-`
-await sql`
-ALTER TABLE usage_logs 
-ADD COLUMN IF NOT EXISTS resource_id UUID
-`
-await sql`
-ALTER TABLE candidates
-ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ
-`
-await sql`
-CREATE TABLE IF NOT EXISTS candidates (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  company_id UUID REFERENCES companies(id),
-  job_id UUID REFERENCES jobs(id),
-  name VARCHAR(255),
-  email VARCHAR(255),
-  phone VARCHAR(50),
-  resume_url TEXT,
-  status VARCHAR(50) DEFAULT 'applied',
-  score INTEGER,
-  stage_id UUID,
-  notes TEXT,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-)
-`
-await sql`
-CREATE TABLE IF NOT EXISTS candidate_scores (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  candidate_id UUID REFERENCES candidates(id),
-  job_id UUID REFERENCES jobs(id),
-  score INTEGER,
-  feedback TEXT,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-)
-`
-     
-    
-          // Fix missing columns (IMPORTANT for login/register)
-      await sql`
-      ALTER TABLE subscriptions 
-      ADD COLUMN IF NOT EXISTS resume_credits_total INTEGER DEFAULT 25;
-      `
-
-      await sql`
-      ALTER TABLE subscriptions 
-      ADD COLUMN IF NOT EXISTS resume_credits_used INTEGER DEFAULT 0;
-      `
-
-            await sql`
-      ALTER TABLE subscriptions 
-      ADD COLUMN IF NOT EXISTS seats_included INTEGER DEFAULT 1;
-      `
-
-      await sql`
-      ALTER TABLE subscriptions 
-      ADD COLUMN IF NOT EXISTS seats_used INTEGER DEFAULT 1;
-      `
+    await sql`
+      CREATE TABLE IF NOT EXISTS usage_logs (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        company_id UUID REFERENCES companies(id),
+        user_id UUID REFERENCES users(id),
+        action VARCHAR(100),
+        event_type VARCHAR(100),
+        resource_type VARCHAR(100),
+        resource_id UUID,
+        credits_used INTEGER DEFAULT 0,
+        metadata JSONB,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      )
+    `
 
     console.log('✅ Tables initialized!')
   } catch (err) {
-    console.log('ℹ️ Tables already exist')
+    console.error('❌ Table init error:', err)
   }
 
   await testDbConnection()
