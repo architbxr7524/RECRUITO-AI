@@ -256,6 +256,20 @@ await sql`
 ALTER TABLE usage_logs 
 ADD COLUMN IF NOT EXISTS resource_id UUID
 `
+await sql`
+CREATE TABLE IF NOT EXISTS candidates (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  company_id UUID REFERENCES companies(id),
+  job_id UUID REFERENCES jobs(id),
+  name VARCHAR(255),
+  email VARCHAR(255),
+  phone VARCHAR(50),
+  resume_url TEXT,
+  status VARCHAR(50) DEFAULT 'applied',
+  score INTEGER,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+)
+`
      
     
           // Fix missing columns (IMPORTANT for login/register)
