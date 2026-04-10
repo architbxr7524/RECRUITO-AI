@@ -267,6 +267,8 @@ CREATE TABLE IF NOT EXISTS candidates (
   resume_url TEXT,
   status VARCHAR(50) DEFAULT 'applied',
   score INTEGER,
+  stage_id UUID,
+  notes TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 )
 `
