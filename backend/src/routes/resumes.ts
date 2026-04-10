@@ -15,16 +15,30 @@ const BUCKET = process.env.S3_BUCKET || 'recruito-resumes'
 
 async function createCandidateAndResume(tx: any, companyId: string, jobId: string, filename: string, mimeType: string, fileSize: number) {
   const stages = await tx`
+  SELECT id FROM hiring_stages
+  WHERE company_id = ${companyId} AND stage_type = 'inbox'
+  ORDER BY position LIMIT 1
+`
+
+// Fallback: get ANY first stage if inbox not found
+let stageId = stages[0]?.id || null
+if (!stageId) {
+  const fallback = await tx`
     SELECT id FROM hiring_stages
-    WHERE company_id = ${companyId} AND stage_type = 'inbox'
+    WHERE company_id = ${companyId}
     ORDER BY position LIMIT 1
   `
-  const candidateId = uuidv4()
-  const [candidate] = await tx`
-    INSERT INTO candidates (id, company_id, job_id, current_stage_id, source, status)
-    VALUES (${candidateId}, ${companyId}, ${jobId}, ${stages[0]?.id || null}, 'upload', 'new')
-    RETURNING *
-  `
+  stageId = fallback[0]?.id || null
+}
+
+const candidateId = uuidv4()
+const [candidate] = await tx`
+  INSERT INTO candidates (id, company_id, job_id, current_stage_id, source, status)
+  VALUES (${candidateId}, ${companyId}, ${jobId}, ${stageId}, 'upload', 'new')
+  RETURNING *
+`
+
+ 
   const resumeId = uuidv4()
   const s3Key = `local/${companyId}/${resumeId}/${filename}`
   const [resume] = await tx`

@@ -30,7 +30,7 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
     const companyId = uuidv4()
     const userId = uuidv4()
 
-    await sql`INSERT INTO companies (id, name, slug, plan, resume_credits) VALUES (${companyId}, ${body.companyName}, ${slug}, 'free', 25)`
+    await sql`INSERT INTO companies (id, name, slug, plan, resume_credits) VALUES (${companyId}, ${body.companyName}, ${slug}, 'free', 100)`
     await sql`INSERT INTO users (id, company_id, email, password_hash, full_name, role, email_verified) VALUES (${userId}, ${companyId}, ${body.email}, ${passwordHash}, ${body.fullName}, 'owner', true)`
     await sql`INSERT INTO hiring_stages (company_id, name, slug, color, position, stage_type) VALUES
       (${companyId}, 'Applied', 'applied', '#64748b', 1, 'inbox'),
@@ -40,7 +40,7 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
       (${companyId}, 'Offer', 'offer', '#10b981', 5, 'offer'),
       (${companyId}, 'Hired', 'hired', '#22c55e', 6, 'hired'),
       (${companyId}, 'Rejected', 'rejected', '#ef4444', 7, 'rejected')`
-    await sql`INSERT INTO subscriptions (company_id, plan, status, resume_credits_total, seats_included) VALUES (${companyId}, 'free', 'active', 25, 1)`
+    await sql`INSERT INTO subscriptions (company_id, plan, status, resume_credits_total, seats_included) VALUES (${companyId}, 'free', 'active', 100, 1)`
 
     const user = { id: userId, email: body.email, fullName: body.fullName, role: 'owner', companyId }
     const tokens = issueTokens(fastify, user)
