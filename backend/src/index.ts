@@ -248,6 +248,10 @@ await sql`
 ALTER TABLE usage_logs 
 ADD COLUMN IF NOT EXISTS event_type VARCHAR(100)
 `
+await sql`
+ALTER TABLE usage_logs 
+ADD COLUMN IF NOT EXISTS resource_type VARCHAR(100)
+`
      
     
           // Fix missing columns (IMPORTANT for login/register)
