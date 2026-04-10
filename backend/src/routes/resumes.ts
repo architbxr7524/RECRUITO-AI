@@ -100,7 +100,7 @@ export const resumeRoutes: FastifyPluginAsync = async (fastify) => {
     if (!jobId) return reply.code(400).send({ error: 'jobId is required' })
 
     const [company] = await sql`SELECT resume_credits FROM companies WHERE id = ${req.user.companyId}`
-    if (!company || company.resumeCredits < 1) {
+    if (!company || (company.resume_credits ?? company.resumeCredits ?? 0) < 1) {
       return reply.code(402).send({ error: 'Insufficient resume credits.' })
     }
 
@@ -127,7 +127,7 @@ export const resumeRoutes: FastifyPluginAsync = async (fastify) => {
 
     await sql`
       INSERT INTO usage_logs (company_id, user_id, event_type, resource_type, resource_id, credits_consumed)
-      VALUES (${req.user.companyId}, ${req.user.sub}, 'resume.uploaded', 'resume', ${resume.id}, 1)
+      VALUES (${req.user.companyId}, ${req.user.sub}, 'resume.uploaded', 'resume', ${resume.id})
     `
 
     return reply.code(202).send({
