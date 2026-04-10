@@ -94,6 +94,17 @@ export const jobRoutes: FastifyPluginAsync = async (fastify) => {
     return reply.code(201).send(job)
   })
 
+  fastify.post('/jobs', async (req, reply) => {
+  try {
+    // existing code
+    const job = await sql`INSERT ...`
+    return job
+  } catch (err) {
+    console.error("JOB CREATE ERROR:", err)   // 👈 ye add kar
+    return reply.status(500).send({ error: err.message })
+  }
+})
+
   // GET /api/v1/jobs/:jobId
   fastify.get('/:jobId', { preHandler: [authenticate] }, async (req, reply) => {
     const { jobId } = req.params as { jobId: string }
