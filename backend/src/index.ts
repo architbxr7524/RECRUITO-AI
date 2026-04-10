@@ -164,7 +164,19 @@ CREATE TABLE IF NOT EXISTS jobs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   company_id UUID NOT NULL REFERENCES companies(id),
 
-  title VARCHAR(255),
+  title VARCHAR(255) NOT NULL,
+  department VARCHAR(255),
+  location VARCHAR(255),
+  remote_type VARCHAR(50),
+  employment_type VARCHAR(50),
+
+  experience_min INTEGER,
+  experience_max INTEGER,
+
+  salary_min INTEGER,
+  salary_max INTEGER,
+  salary_currency VARCHAR(10),
+
   description TEXT,
   requirements TEXT,
   benefits TEXT,
@@ -177,6 +189,16 @@ CREATE TABLE IF NOT EXISTS jobs (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 )
 `
+
+await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS department VARCHAR(255)`
+await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS location VARCHAR(255)`
+await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS remote_type VARCHAR(50)`
+await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS employment_type VARCHAR(50)`
+await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS experience_min INTEGER`
+await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS experience_max INTEGER`
+await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS salary_min INTEGER`
+await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS salary_max INTEGER`
+await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS salary_currency VARCHAR(10)`
      
       await sql`CREATE TABLE IF NOT EXISTS subscriptions (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -186,6 +208,8 @@ CREATE TABLE IF NOT EXISTS jobs (
       current_period_end TIMESTAMPTZ,
       created_at TIMESTAMPTZ DEFAULT NOW()
     )`
+
+     
     
           // Fix missing columns (IMPORTANT for login/register)
       await sql`
