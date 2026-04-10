@@ -6,7 +6,7 @@ import { sql } from '../db/client'
 import { authenticate } from '../middleware/auth'
 
 const registerSchema = z.object({
-  companyName: z.string().min(1).default("MyCompany")
+  companyName: z.string().min(1).default("MyCompany"),
   email: z.string().email(),
   password: z.string().min(8),
   fullName: z.string().min(2).max(255)
@@ -65,7 +65,12 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
     if (!result.length) return reply.code(401).send({ error: 'Invalid credentials' })
 
     const row = result[0]
-    const hash = row.password_hash || row.passwordHash
+    const hash = row.password_hash
+
+    if (!hash) {
+      console.log("NO HASH FOUND:", row)
+      return reply.code(401).send({ error: 'Account error' })
+    }
 
     if (!hash) return reply.code(401).send({ error: 'Account error - run fix-password.js' })
 
