@@ -31,10 +31,13 @@ export default function PublicJobPage() {
       formData.append('file', file)
       formData.append('candidateName', form.name)
       formData.append('candidateEmail', form.email)
-      const res = await fetch(`${BACKEND}/resumes/upload?jobId=${jobId}`, {
+       const res = await fetch(`${BACKEND}/resumes/upload/public?jobId=${jobId}&candidateName=${encodeURIComponent(form.name)}&candidateEmail=${encodeURIComponent(form.email)}`, 
+      {
         method: 'POST',
-        body: formData
-      })
+        body: formData   // remove the Content-Type header — browser sets it with boundary automatically
+      }
+)
+  
       if (!res.ok) throw new Error('Upload failed')
       setSubmitted(true)
     } catch {

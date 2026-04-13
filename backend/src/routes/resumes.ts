@@ -108,6 +108,42 @@ export const resumeRoutes: FastifyPluginAsync = async (fastify) => {
     })
   })
 
+     // PUBLIC resume upload — no auth needed
+fastify.post('/upload/public', async (req, reply) => {
+  try {
+    const data = await req.file()
+    if (!data) return reply.code(400).send({ error: 'No file uploaded' })
+    
+    const query = req.query as any
+    const jobId = query.jobId
+    if (!jobId) return reply.code(400).send({ error: 'jobId required' })
+
+    // Get job to find company
+    const jobs = await sql`
+      SELECT id, company_id FROM jobs 
+      WHERE id = ${jobId} AND status = 'active' AND deleted_at IS NULL
+    `
+    if (!jobs.length) return reply.code(404).send({ error: 'Job not found' })
+    
+    const job = jobs[0]
+    const candidateId = uuidv4()
+    const candidateName = query.candidateName || 'Unknown'
+    const candidateEmail = query.candidateEmail || null
+
+    // Save candidate record
+    await sql`
+      INSERT INTO candidates (id, company_id, job_id, full_name, email, source, status)
+      VALUES (${candidateId}, ${job.company_id}, ${jobId}, ${candidateName}, ${candidateEmail}, 'applied', 'new')
+      ON CONFLICT DO NOTHING
+    `
+
+    return reply.code(201).send({ success: true, candidateId })
+  } catch (err: any) {
+    console.error('Public upload error:', err)
+    return reply.code(500).send({ error: err.message })
+  }
+})
+
   // ── Single upload ─────────────────────────────────
   fastify.post('/upload', { preHandler: [authenticate] }, async (req, reply) => {
     const { jobId } = req.query as { jobId: string }
