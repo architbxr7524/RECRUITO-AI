@@ -108,33 +108,46 @@ export const resumeRoutes: FastifyPluginAsync = async (fastify) => {
     })
   })
 
-     // PUBLIC resume upload — no auth needed
+    // PUBLIC resume upload — replace your existing /upload/public route
 fastify.post('/upload/public', async (req, reply) => {
   try {
     const data = await req.file()
     if (!data) return reply.code(400).send({ error: 'No file uploaded' })
-    
+
     const query = req.query as any
     const jobId = query.jobId
+    const candidateName = decodeURIComponent(query.candidateName || 'Unknown Candidate')
+    const candidateEmail = query.candidateEmail ? decodeURIComponent(query.candidateEmail) : null
+
     if (!jobId) return reply.code(400).send({ error: 'jobId required' })
 
-    // Get job to find company
+    // Get job + company
     const jobs = await sql`
-      SELECT id, company_id FROM jobs 
+      SELECT id, company_id FROM jobs
       WHERE id = ${jobId} AND status = 'active' AND deleted_at IS NULL
     `
     if (!jobs.length) return reply.code(404).send({ error: 'Job not found' })
-    
     const job = jobs[0]
-    const candidateId = uuidv4()
-    const candidateName = query.candidateName || 'Unknown'
-    const candidateEmail = query.candidateEmail || null
 
-    // Save candidate record
+    // Get the 'Applied' stage for this company
+    const stages = await sql`
+      SELECT id FROM hiring_stages
+      WHERE company_id = ${job.company_id} AND slug = 'applied'
+      LIMIT 1
+    `
+    const stageId = stages[0]?.id || null
+
+    const candidateId = uuidv4()
+
     await sql`
-      INSERT INTO candidates (id, company_id, job_id, full_name, email, source, status)
-      VALUES (${candidateId}, ${job.company_id}, ${jobId}, ${candidateName}, ${candidateEmail}, 'applied', 'new')
-      ON CONFLICT DO NOTHING
+      INSERT INTO candidates (
+        id, company_id, job_id, full_name, email,
+        source, status, current_stage_id
+      ) VALUES (
+        ${candidateId}, ${job.company_id}, ${jobId},
+        ${candidateName}, ${candidateEmail},
+        'applied', 'new', ${stageId}
+      )
     `
 
     return reply.code(201).send({ success: true, candidateId })
@@ -143,6 +156,7 @@ fastify.post('/upload/public', async (req, reply) => {
     return reply.code(500).send({ error: err.message })
   }
 })
+
 
   // ── Single upload ─────────────────────────────────
   fastify.post('/upload', { preHandler: [authenticate] }, async (req, reply) => {
