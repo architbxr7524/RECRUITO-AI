@@ -129,7 +129,7 @@ export default function CandidateDetailPage() {
     return typeof g === 'string' ? JSON.parse(g) : g
   })()
 
-  const initials = candidate.fullName?.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase() || '?'
+  const initials = (candidate.fullName || candidate.full_name)?.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase() || '?'
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
@@ -146,7 +146,7 @@ export default function CandidateDetailPage() {
           </div>
           <div className="flex-1 min-w-0">
             <h1 className="text-xl font-black text-white">
-              {candidate.fullName || 'Unknown Candidate'}
+              {candidate.fullName || candidate.full_name || 'Unknown Candidate'}
             </h1>
             <div className="text-slate-400 text-sm mt-0.5">
               {candidate.currentTitle || 'No title'} {candidate.currentCompany ? `at ${candidate.currentCompany}` : ''}
