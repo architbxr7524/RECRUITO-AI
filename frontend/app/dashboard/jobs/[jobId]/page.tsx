@@ -103,6 +103,18 @@ export default function JobDetailPage() {
             className="flex items-center gap-1.5 text-sm border border-slate-700 hover:border-slate-600 text-slate-300 hover:text-white px-4 py-2 rounded-lg transition">
             📋 Pipeline
           </Link>
+                    {job.status === 'active' && (
+            <button
+              onClick={() => {
+                const url = `${window.location.origin}/jobs/${jobId}`
+                navigator.clipboard.writeText(url)
+                toast.success('Public link copied! Share with candidates.')
+              }}
+              className="flex items-center gap-1.5 text-sm border border-green-700 hover:border-green-500 text-green-400 hover:text-white px-4 py-2 rounded-lg transition"
+            >
+              🔗 Copy Public Link
+            </button>
+          )}
           {job.status === 'draft' && (
             <button onClick={() => publishMutation.mutate()}
               className="flex items-center gap-1.5 text-sm bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg transition font-semibold">

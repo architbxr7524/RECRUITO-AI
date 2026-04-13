@@ -88,6 +88,23 @@ fastify.post('/', { preHandler: [authenticate] }, async (req, reply) => {
   }
 })
   
+    // PUBLIC route — no auth needed — add BEFORE /:jobId
+    fastify.get('/public/:jobId', async (req, reply) => {
+      const { jobId } = req.params as { jobId: string }
+      try {
+        const jobs = await sql`
+          SELECT id, title, description, requirements, benefits,
+                location, remote_type, employment_type,
+                experience_min, experience_max, status, company_id
+          FROM jobs
+          WHERE id = ${jobId} AND status = 'active' AND deleted_at IS NULL
+        `
+        if (!jobs.length) return reply.code(404).send({ error: 'Job not found or not active' })
+        return reply.send(jobs[0])
+      } catch (err: any) {
+        return reply.code(500).send({ error: err.message })
+      }
+  })
 
   // GET /api/v1/jobs/:jobId
 fastify.get('/:jobId', { preHandler: [authenticate] }, async (req, reply) => {
