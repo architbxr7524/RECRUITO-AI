@@ -109,7 +109,7 @@ export const resumeRoutes: FastifyPluginAsync = async (fastify) => {
   })
 
     // PUBLIC resume upload — replace your existing /upload/public route
-fastify.post('/upload/public', async (req, reply) => {
+     fastify.post('/upload/public', async (req, reply) => {
   try {
     const data = await req.file()
     if (!data) return reply.code(400).send({ error: 'No file uploaded' })
@@ -121,7 +121,8 @@ fastify.post('/upload/public', async (req, reply) => {
 
     if (!jobId) return reply.code(400).send({ error: 'jobId required' })
 
-    // Get job + company
+    const buffer = await data.toBuffer()
+
     const jobs = await sql`
       SELECT id, company_id FROM jobs
       WHERE id = ${jobId} AND status = 'active' AND deleted_at IS NULL
@@ -129,16 +130,15 @@ fastify.post('/upload/public', async (req, reply) => {
     if (!jobs.length) return reply.code(404).send({ error: 'Job not found' })
     const job = jobs[0]
 
-    // Get the 'Applied' stage for this company
     const stages = await sql`
       SELECT id FROM hiring_stages
       WHERE company_id = ${job.company_id} AND slug = 'applied'
       LIMIT 1
     `
     const stageId = stages[0]?.id || null
-
     const candidateId = uuidv4()
 
+    // Create candidate with name
     await sql`
       INSERT INTO candidates (
         id, company_id, job_id, full_name, email,
@@ -149,6 +149,24 @@ fastify.post('/upload/public', async (req, reply) => {
         'applied', 'new', ${stageId}
       )
     `
+
+    // Create resume record + trigger AI processing
+    const resumeId = uuidv4()
+    const s3Key = `local/${job.company_id}/${resumeId}/${data.filename}`
+
+    await sql`
+      INSERT INTO resumes (id, candidate_id, company_id, s3_key, s3_bucket, original_filename, file_size, mime_type, parse_status)
+      VALUES (${resumeId}, ${candidateId}, ${job.company_id}, ${s3Key}, 'local', ${data.filename}, ${buffer.length}, ${data.mimetype}, 'pending')
+    `
+
+    // ✅ Trigger AI scoring — same as authenticated upload
+    setImmediate(async () => {
+      try {
+        await processResume(resumeId, candidateId, jobId, job.company_id, buffer, data.mimetype)
+      } catch (e) {
+        console.error('Public resume processing error:', e)
+      }
+    })
 
     return reply.code(201).send({ success: true, candidateId })
   } catch (err: any) {
